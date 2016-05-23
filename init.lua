@@ -20,8 +20,8 @@
 
 
 local chest_stuff = {
-	{name="default:old_apple", max = 1, rarity=1},
-	{name="default:old_bread", max = 1, rarity=6},
+	--{name="default:old_apple", max = 1, rarity=1},
+	--{name="default:old_bread", max = 1, rarity=6},
 	{name="farming:seed_wheat", max = 1, rarity=5},
 	{name="bucket:bucket_empty", max = 1, rarity=7},
 	{name="bucket:bucket_water", max = 1, rarity=9},
@@ -35,7 +35,7 @@ minetest.register_node("ruins:chest", {
 	tiles = {"ruins_chest_top.png", "ruins_chest_top.png", "ruins_chest_side.png",
 			"ruins_chest_side.png", "ruins_chest_side.png", "ruins_chest_front.png"},
 	paramtype2 = "facedir",
-	groups = {choppy = default.dig.old_chest},
+	groups = {choppy = 1},--default.dig.old_chest was 11},
 	legacy_facedir_simple = true,
 	sounds = default.node_sound_wood_defaults({
 		dug = {name = "ruins_chest_break", gain = 0.8},
@@ -46,7 +46,21 @@ minetest.register_node("ruins:chest", {
 		local inv = meta:get_inventory()
 		inv:set_size("main", 8*4)
 	end,
-	after_dig_node = default.drop_node_inventory(),
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		local meta = minetest.get_meta(pos)
+		meta:from_table(oldmetadata)
+		local inv = meta:get_inventory()
+		for i = 1, inv:get_size("main") do
+			local stack = inv:get_stack("main", i)
+			if not stack:is_empty() then
+				local p = {	x = pos.x + math.random(0, 5)/5 - 0.5,
+						y = pos.y,
+						z = pos.z + math.random(0, 5)/5 - 0.5
+					  }
+				minetest.add_item(p, stack)
+			end
+		end
+	end,
 })
 
 --[[local frm = default.chest_formspec
@@ -240,7 +254,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			end
 			generate_sized(point, {x = math.random(6, 9), z = math.random(6, 9)})
 		end)
-	elseif math.abs(noise1) > 0.45 then
+	elseif math.abs(noise) > 0.45 then
 		local mpos = {x=math.random(minp.x,maxp.x), y=math.random(minp.y,maxp.y), z=math.random(minp.z,maxp.z)}
 		minetest.after(0.1, function()
 			local point = minetest.find_node_near(mpos, 25, {"default:dry_dirt"})
